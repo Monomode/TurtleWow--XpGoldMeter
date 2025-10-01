@@ -1,48 +1,51 @@
 -- XpGoldOverlay.lua
-local frame = CreateFrame("Frame", "XpGoldOverlay", UIParent)
-frame:ClearAllPoints()
-frame:SetWidth(200)
-frame:SetHeight(50)
-frame:SetPoint("CENTER", 0, -180)
+local overlayFrame = CreateFrame("Frame", "XpGoldOverlay", UIParent)
+overlayFrame:SetSize(200, 50)
+overlayFrame:SetPoint("CENTER", 0, -180)
 
--- Create the text
-frame.text = frame:CreateFontString("Status", "LOW", "GameFontNormal")
-frame.text:SetFont(STANDARD_TEXT_FONT, 12, "OUTLINE")
-frame.text:ClearAllPoints()
-frame.text:SetAllPoints(frame)
-frame.text:SetPoint("CENTER", 0, 0)
-frame.text:SetFontObject(GameFontWhite)
+overlayFrame.text = overlayFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+overlayFrame.text:SetAllPoints()
+overlayFrame.text:SetFont(STANDARD_TEXT_FONT, 12, "OUTLINE")
+overlayFrame.text:SetFontObject(GameFontWhite)
 
--- Make it movable
-frame:SetMovable(true)
-frame:EnableMouse(true)
-frame:SetScript("OnMouseDown", function(self, button)
+overlayFrame:SetMovable(true)
+overlayFrame:EnableMouse(true)
+overlayFrame:SetScript("OnMouseDown", function(self, button)
     if button == "LeftButton" and IsControlKeyDown() then
         self:StartMoving()
     end
 end)
-frame:SetScript("OnMouseUp", function(self, button)
+overlayFrame:SetScript("OnMouseUp", function(self, button)
     if button == "LeftButton" then
         self:StopMovingOrSizing()
         self:SetUserPlaced(true)
     end
 end)
 
--- Initialize tracking variables
-local startXP = UnitXP("player")
-local startMoney = GetMoney()
-local startTime = GetTime()
+-- Tracking variables
+local startXP, startMoney, startTime = 0, 0, 0
 
--- Update the text every frame
-frame:SetScript("OnUpdate", function()
+-- Create a frame to handle events
+local eventFrame = CreateFrame("Frame")
+eventFrame:RegisterEvent("PLAYER_LOGIN")
+eventFrame:SetScript("OnEvent", function(self, event)
+    startXP = UnitXP("player")
+    startMoney = GetMoney()
+    startTime = GetTime()
+
+    -- Loaded message
+    DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99XpGoldOverlay loaded!|r")
+end)
+
+-- Update overlay every frame
+overlayFrame:SetScript("OnUpdate", function()
+    if startTime == 0 then return end -- wait until login event initializes
+
     local elapsed = GetTime() - startTime
-    if elapsed <= 0 then elapsed = 1 end -- avoid div/0
+    if elapsed <= 0 then elapsed = 1 end
 
-    local currentXP = UnitXP("player")
-    local currentMoney = GetMoney()
-
-    local xpGained = currentXP - startXP
-    local moneyGained = currentMoney - startMoney
+    local xpGained = UnitXP("player") - startXP
+    local moneyGained = GetMoney() - startMoney
 
     local xpPerHour = xpGained / elapsed * 3600
     local moneyPerHour = moneyGained / elapsed * 3600
@@ -51,12 +54,5 @@ frame:SetScript("OnUpdate", function()
     local silver = floor((moneyPerHour % 10000) / 100)
     local copper = floor(moneyPerHour % 100)
 
-    frame.text:SetText(string.format("XP/hr: %.0f  Gold/hr: %dG %dS %dC", xpPerHour, gold, silver, copper))
-end)
-
--- Print loaded message
-local eventFrame = CreateFrame("Frame")
-eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
-eventFrame:SetScript("OnEvent", function()
-    print("|cff33ff99XpGoldOverlay loaded!|r")
+    overlayFrame.text:SetText(string.format("XP/hr: %.0f  Gold/hr: %dG %dS %dC", xpPerHour, gold, silver, copper))
 end)
