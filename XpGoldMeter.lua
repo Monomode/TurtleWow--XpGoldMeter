@@ -3,7 +3,7 @@ local startXP = UnitXP("player")
 local startGold = GetMoney()
 local startTime = time()
 local elapsed = time() - startTime
-if elapsed <= 0 then elapsed = 1 end
+-- if elapsed <= 0 then elapsed = 1 end
 
 -- XP/hr
 local gainedXP = UnitXP("player") - startXP
