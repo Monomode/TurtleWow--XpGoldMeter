@@ -15,17 +15,13 @@ end)
 
 frame:SetMovable(true)
 frame:EnableMouse(true)
-frame:SetScript("OnMouseDown", function(self, frame)
-  if frame == "LeftButton" then
-    self:StartMoving()
-  end
+frame:SetScript("OnMouseDown",function()
+  this:StartMoving()
 end)
 
-frame:SetScript("OnMouseUp", function(self, frame)
-  if frame == "LeftButton" then
-    self:StopMovingOrSizing()
-    self:SetUserPlaced(true)
-  end
+frame:SetScript("OnMouseUp",function()
+  this:StopMovingOrSizing()
+  this:SetUserPlaced(true)
 end)
 
 -- Simple print to chat to confirm AddOn is loaded
