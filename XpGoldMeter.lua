@@ -1,22 +1,3 @@
--- Session tracking
-local startXP = UnitXP("player")
-local startGold = GetMoney()
-local startTime = time()
-local elapsed = time() - startTime
-if elapsed <= 0 then elapsed = 1 end
-
--- XP/hr
-local gainedXP = UnitXP("player") - startXP
-local xpPerHour = (gainedXP / elapsed) * 3600
-
--- Gold/hr
--- local gainedGold = GetMoney() - startGold
-
--- Gold/hr (in decimal gold)
-local gainedGold = (GetMoney() or 0) - startGold
-if gainedGold < 0 then gainedGold = 0 end
-local goldPerHour = (gainedGold / elapsed) * 3600 / 10000 -- copper→gold
-
 local frame = CreateFrame("Frame", "XpGoldOverlay", UIParent)
 frame:ClearAllPoints()
 frame:SetWidth(115)
@@ -28,8 +9,21 @@ frame.text:ClearAllPoints()
 frame.text:SetAllPoints(frame)
 frame.text:SetPoint("CENTER", 0, 0)
 frame.text:SetFontObject(GameFontWhite)
-frame:SetScript("OnUpdate", function()
-  this.text:SetText("XP/hr: %.0f\nGold/hr: %.2fg",
+frame:SetScript("OnUpdate", function(
+-- Session tracking
+local startXP = UnitXP("player")
+local startGold = GetMoney()
+local startTime = time()
+local elapsed = time() - startTime
+if elapsed <= 0 then elapsed = 1 end
+-- XP/hr
+local gainedXP = UnitXP("player") - startXP
+local xpPerHour = (gainedXP / elapsed) * 3600
+-- Gold/hr
+local gainedGold = (GetMoney() or 0) - startGold
+if gainedGold < 0 then gainedGold = 0 end
+local goldPerHour = (gainedGold / elapsed) * 3600 / 10000 -- copper→gold
+  this.text:SetText("XP/hour: %.0f\nGold: %.2fg",
     xpPerHour, goldPerHour)
 end)
 
