@@ -1,7 +1,4 @@
 ## Interface: 11200
-## Title: |cff7fff7f TurtleWOW|r XPGoldMeter
-## Notes: Tracks XP/hour and Gold/hour in Turtle WoW (1.12).
-## Author: Monomoy
-## Version: 0.1
-
-XPGoldMeter.lua
+## Title: XpGoldMeter
+## Notes: Test addon load
+XpGoldMeter.lua
