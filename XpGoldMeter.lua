@@ -2,11 +2,11 @@
 local startXP = UnitXP("player")
 local startGold = GetMoney()
 local startTime = time()
-local elapsed = time() - startTime
-if elapsed <= 0 then elapsed = 1 end
+--local elapsed = time() - startTime
+--if elapsed <= 0 then elapsed = 1 end
 -- XP/hr
-local gainedXP = UnitXP("player") - startXP
-local xpPerHour = (gainedXP / elapsed) * 3600
+--local gainedXP = UnitXP("player") - startXP
+--local xpPerHour = (gainedXP / elapsed) * 3600
 -- Gold/hr
 --local gainedGold = (GetMoney() or 0) - startGold
 --if gainedGold < 0 then gainedGold = 0 end
@@ -24,8 +24,7 @@ frame.text:SetAllPoints(frame)
 frame.text:SetPoint("CENTER", 0, 0)
 frame.text:SetFontObject(GameFontWhite)
 frame:SetScript("OnUpdate", function(
-  this.text:SetText("XP/hour: %.0f\nGold: %.2fg",
-    xpPerHour, goldPerHour)
+  this.text:SetText("XP/hour: %.0f\nGold: %.2fg", xpPerHour, goldPerHour)
 end)
 
 frame:SetMovable(true)
