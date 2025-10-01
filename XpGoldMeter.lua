@@ -9,9 +9,9 @@ frame.text:ClearAllPoints()
 frame.text:SetAllPoints(frame)
 frame.text:SetPoint("CENTER", 0, 0)
 frame.text:SetFontObject(GameFontWhite)
-frame:SetScript("OnUpdate", function()
-  this.text:SetText("Xp/hour:\nGold:")
-end)
+-- frame:SetScript("OnUpdate", function()
+--  this.text:SetText("XP/hr: %.0f\nGold/hr: %dG %dS %dC", xpPerHour, gph, sph, floor(cph))
+-- end)
 
 frame:SetMovable(true)
 frame:EnableMouse(true)
@@ -22,6 +22,31 @@ end)
 frame:SetScript("OnMouseUp",function()
   this:StopMovingOrSizing()
   this:SetUserPlaced(true)
+end)
+
+-- Session tracking
+local startXP = UnitXP("player")
+local startGold = GetMoney()
+local startTime = time()
+
+frame:SetScript("OnUpdate", function()
+    local elapsed = time() - startTime
+    if elapsed <= 0 then elapsed = 1 end
+
+    -- XP/hr
+    local gainedXP = UnitXP("player") - startXP
+    local xpPerHour = (gainedXP / elapsed) * 3600
+
+    -- Gold/hr
+    local gainedGold = GetMoney() - startGold
+    local gold = floor(gainedGold / 10000)
+    local silver = floor((gainedGold % 10000) / 100)
+    local copper = gainedGold % 100
+    local goldPerHour = (gainedGold / elapsed) * 3600
+    local gph = floor(goldPerHour / 10000)
+    local sph = floor((goldPerHour % 10000) / 100)
+    local cph = goldPerHour % 100
+  this.text:SetText("XP/hr: %.0f\nGold/hr: %dG %dS %dC", xpPerHour, gph, sph, floor(cph))
 end)
 
 -- Simple print to chat to confirm AddOn is loaded
