@@ -1,15 +1,3 @@
-local frame = CreateFrame("Frame", "XpGoldOverlay", UIParent)
-frame:ClearAllPoints()
-frame:SetWidth(115)
-frame:SetHeight(25)
-frame:SetPoint("CENTER", 0, -205)
-frame.text = frame:CreateFontString("Status", "LOW", "GameFontNormal")
-frame.text:SetFont(STANDARD_TEXT_FONT, 12, "OUTLINE")
-frame.text:ClearAllPoints()
-frame.text:SetAllPoints(frame)
-frame.text:SetPoint("CENTER", 0, 0)
-frame.text:SetFontObject(GameFontWhite)
-frame:SetScript("OnUpdate", function(
 -- Session tracking
 local startXP = UnitXP("player")
 local startGold = GetMoney()
@@ -23,6 +11,19 @@ local xpPerHour = (gainedXP / elapsed) * 3600
 local gainedGold = (GetMoney() or 0) - startGold
 if gainedGold < 0 then gainedGold = 0 end
 local goldPerHour = (gainedGold / elapsed) * 3600 / 10000 -- copper→gold
+
+local frame = CreateFrame("Frame", "XpGoldOverlay", UIParent)
+frame:ClearAllPoints()
+frame:SetWidth(115)
+frame:SetHeight(25)
+frame:SetPoint("CENTER", 0, -205)
+frame.text = frame:CreateFontString("Status", "LOW", "GameFontNormal")
+frame.text:SetFont(STANDARD_TEXT_FONT, 12, "OUTLINE")
+frame.text:ClearAllPoints()
+frame.text:SetAllPoints(frame)
+frame.text:SetPoint("CENTER", 0, 0)
+frame.text:SetFontObject(GameFontWhite)
+frame:SetScript("OnUpdate", function(
   this.text:SetText("XP/hour: %.0f\nGold: %.2fg",
     xpPerHour, goldPerHour)
 end)
