@@ -1,108 +1,163 @@
---[[ 
-XpGoldMeter (Turtle WoW Addon)
-==============================
-Author: Monomoy
+-- XpGoldMeter (Turtle WoW 1.12)
+-- Tracks XP/hr and Gold/hr and session totals.
+-- Drop into Interface/AddOns/XpGoldMeter/XpGoldMeter.lua
 
-Tracks XP/hour and Gold/hour on Turtle WoW (1.12).
+local addon = "XpGoldMeter"
+local XPGM = {}
 
-Features:
-- Movable window shows current XP/hour and Gold/hour.
-- Tracks both per-session rate and total session gain.
-- Slash command `/xpgold` toggles the frame.
-- Interface automatically loads on login.
-]]
+-- session tracking
+XPGM.startTime = 0
+XPGM.prevXP = 0
+XPGM.prevXPMax = 0
+XPGM.prevLevel = 0
+XPGM.xpGained = 0
 
-local XpGoldMeter = {}
-XpGoldMeter.startTime = 0
-XpGoldMeter.xpGained = 0
-XpGoldMeter.goldGained = 0
-XpGoldMeter.silverGained = 0
-XpGoldMeter.copperGained = 0
-XpGoldMeter.startXP = 0
-XpGoldMeter.startMoney = 0
+XPGM.prevMoney = 0
+XPGM.moneyGained = 0
 
--- Main frame
-local f = CreateFrame("Frame", "XpGoldMeterFrame", UIParent)
-f:SetSize(220, 100)
-f:SetPoint("CENTER")
-f:SetBackdrop({
-  bgFile = "Interface/Tooltips/UI-Tooltip-Background",
-  edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+-- Create display frame (will be shown on PLAYER_LOGIN)
+local frame = CreateFrame("Frame", "XPGoldMeterFrame", UIParent)
+frame:SetWidth(260)
+frame:SetHeight(90)
+frame:SetPoint("CENTER", UIParent, "CENTER", 0, 180)
+frame:SetBackdrop({
+  bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+  edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
   tile = true, tileSize = 16, edgeSize = 16,
   insets = { left = 4, right = 4, top = 4, bottom = 4 }
 })
-f:SetBackdropColor(0, 0, 0, 0.7)
-f:EnableMouse(true)
-f:SetMovable(true)
-f:RegisterForDrag("LeftButton")
-f:SetScript("OnDragStart", f.StartMoving)
-f:SetScript("OnDragStop", f.StopMovingOrSizing)
+frame:SetBackdropColor(0,0,0,0.75)
+frame:EnableMouse(true)
+frame:SetMovable(true)
+frame:RegisterForDrag("LeftButton")
+frame:SetScript("OnDragStart", frame.StartMoving)
+frame:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
+frame:Hide()
 
--- Display text
-f.text = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-f.text:SetPoint("TOPLEFT", 10, -10)
-f.text:SetJustifyH("LEFT")
+frame.title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+frame.title:SetPoint("TOP", 0, -6)
+frame.title:SetText("XP & Gold Meter")
 
--- Slash command
-SLASH_XPGOLDMETER1 = "/xpgold"
-SlashCmdList["XPGOLDMETER"] = function()
-  if f:IsShown() then f:Hide() else f:Show() end
+frame.text = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+frame.text:SetPoint("TOPLEFT", 10, -28)
+frame.text:SetJustifyH("LEFT")
+frame.text:SetWidth(frame:GetWidth() - 20)
+
+-- Toggle/reset slash commands (define globally so user can type even before event)
+SLASH_XPGOLD1 = "/xpgold"
+SLASH_XPGOLD2 = "/xpgm"
+SlashCmdList["XPGOLD"] = function(msg)
+  msg = msg and strlower(msg) or ""
+  if msg == "reset" then
+    -- reset session
+    XPGM.startTime = GetTime()
+    XPGM.prevXP = UnitXP("player") or 0
+    XPGM.prevXPMax = UnitXPMax("player") or 0
+    XPGM.prevLevel = UnitLevel("player") or 0
+    XPGM.xpGained = 0
+    XPGM.prevMoney = GetMoney() or 0
+    XPGM.moneyGained = 0
+    print("|cff00ff00XpGoldMeter: session reset.|r")
+  else
+    if frame:IsShown() then frame:Hide() else frame:Show() end
+  end
 end
 
--- Event frame
-local ef = CreateFrame("Frame")
-ef:RegisterEvent("PLAYER_LOGIN")
-ef:RegisterEvent("PLAYER_XP_UPDATE")
-ef:RegisterEvent("PLAYER_MONEY")
+-- helper: format copper -> g s c
+local function FormatGSC(copper)
+  copper = math.floor(copper or 0)
+  local g = math.floor(copper / 10000)
+  local s = math.floor((copper % 10000) / 100)
+  local c = copper % 100
+  return string.format("%dg %ds %dc", g, s, c)
+end
 
-ef:SetScript("OnEvent", function(self, event, ...)
+-- event handler frame
+local ev = CreateFrame("Frame")
+ev:RegisterEvent("PLAYER_LOGIN")
+ev:RegisterEvent("PLAYER_XP_UPDATE")
+ev:RegisterEvent("PLAYER_MONEY")
+
+-- Keep an update accumulator to refresh text at a reasonable interval
+local updateAccumulator = 0
+local function UpdateDisplay()
+  local now = GetTime()
+  local elapsed = now - (XPGM.startTime or now)
+  if elapsed <= 0 then elapsed = 1 end
+  local hours = elapsed / 3600
+
+  local xpPerHour = math.floor((XPGM.xpGained / hours) + 0.5)
+  local moneyPerHourCopper = math.floor((XPGM.moneyGained / hours) + 0.5)
+
+  local moneyPerHourText = FormatGSC(moneyPerHourCopper)
+  local sessionMoneyText = FormatGSC(XPGM.moneyGained)
+  local sessionXP = XPGM.xpGained
+
+  frame.text:SetText(string.format(
+    "XP/hr: %s\nGold/hr: %s\n\nSession XP: %d\nSession Gold: %s",
+    tostring(xpPerHour), moneyPerHourText, sessionXP, sessionMoneyText
+  ))
+end
+
+ev:SetScript("OnEvent", function(self, event, ...)
   if event == "PLAYER_LOGIN" then
-    -- initialize values
-    XpGoldMeter.startTime = GetTime()
-    XpGoldMeter.startXP = UnitXP("player")
-    XpGoldMeter.startMoney = GetMoney()
-    f:Show() -- ensure frame is visible on login
+    -- initialize baseline values
+    XPGM.startTime = GetTime()
+    XPGM.prevXP = UnitXP("player") or 0
+    XPGM.prevXPMax = UnitXPMax("player") or 0
+    XPGM.prevLevel = UnitLevel("player") or 0
+    XPGM.xpGained = 0
 
-  elseif event == "PLAYER_XP_UPDATE" then
-    local currentXP = UnitXP("player")
-    XpGoldMeter.xpGained = currentXP - XpGoldMeter.startXP
-    if XpGoldMeter.xpGained < 0 then
-      -- leveled up, reset baseline
-      XpGoldMeter.startXP = currentXP
-      XpGoldMeter.xpGained = 0
+    XPGM.prevMoney = GetMoney() or 0
+    XPGM.moneyGained = 0
+
+    frame:Show()
+    print("|cff33ff99XpGoldMeter loaded.|r /xpgold to toggle, /xpgold reset to reset session.")
+    return
+  end
+
+  if event == "PLAYER_XP_UPDATE" then
+    -- This event may fire for player XP changes
+    local currXP = UnitXP("player") or 0
+    local currXPMax = UnitXPMax("player") or 0
+    local currLevel = UnitLevel("player") or 0
+
+    local diff = currXP - (XPGM.prevXP or 0)
+    if diff >= 0 then
+      XPGM.xpGained = (XPGM.xpGained or 0) + diff
+    else
+      -- level-up happened: previous level remaining + current xp
+      -- use prevXPMax (stored from previous state) to compute remaining xp in previous level
+      local prevMax = (XPGM.prevXPMax or currXPMax) -- fallback
+      local carried = (prevMax - (XPGM.prevXP or 0))
+      if carried < 0 then carried = 0 end
+      XPGM.xpGained = (XPGM.xpGained or 0) + carried + currXP
     end
 
-  elseif event == "PLAYER_MONEY" then
-    local currentMoney = GetMoney()
-    local diff = currentMoney - XpGoldMeter.startMoney
-    if diff > 0 then
-      local g = math.floor(diff / 10000)
-      local s = math.floor((diff % 10000) / 100)
-      local c = diff % 100
-      XpGoldMeter.goldGained = g
-      XpGoldMeter.silverGained = s
-      XpGoldMeter.copperGained = c
+    -- update prev trackers
+    XPGM.prevXP = currXP
+    XPGM.prevXPMax = currXPMax
+    XPGM.prevLevel = currLevel
+    return
+  end
+
+  if event == "PLAYER_MONEY" then
+    local currMoney = GetMoney() or 0
+    local diff = currMoney - (XPGM.prevMoney or 0)
+    if diff ~= 0 then
+      -- add positive or negative changes (if you spend money, session money decreases)
+      XPGM.moneyGained = (XPGM.moneyGained or 0) + diff
+      XPGM.prevMoney = currMoney
     end
+    return
   end
 end)
 
--- OnUpdate: refresh display
-f:SetScript("OnUpdate", function()
-  local elapsed = GetTime() - XpGoldMeter.startTime
-  if elapsed <= 0 then return end
-
-  local xpPerHour = (XpGoldMeter.xpGained / elapsed) * 3600
-  local moneyPerHour = ((XpGoldMeter.goldGained*10000 + XpGoldMeter.silverGained*100 + XpGoldMeter.copperGained) / elapsed) * 3600
-
-  local g = math.floor(moneyPerHour / 10000)
-  local s = math.floor((moneyPerHour % 10000) / 100)
-  local c = math.floor(moneyPerHour % 100)
-
-  f.text:SetText(string.format(
-    "XP/hr: %.0f\nGold/hr: %dg %ds %dc\nSession XP: %d\nSession Gold: %dg %ds %dc",
-    xpPerHour,
-    g, s, c,
-    XpGoldMeter.xpGained,
-    XpGoldMeter.goldGained, XpGoldMeter.silverGained, XpGoldMeter.copperGained
-  ))
+-- Use OnUpdate to refresh displayed numbers every 1 second
+frame:SetScript("OnUpdate", function(self, elapsed)
+  updateAccumulator = updateAccumulator + elapsed
+  if updateAccumulator >= 1 then
+    UpdateDisplay()
+    updateAccumulator = 0
+  end
 end)
