@@ -1,3 +1,8 @@
+-- Session tracking
+local startXP = UnitXP("player")
+local startGold = GetMoney()
+local startTime = time()
+
 local frame = CreateFrame("Frame", "XpGoldOverlay", UIParent)
 frame:ClearAllPoints()
 frame:SetWidth(115)
@@ -10,7 +15,7 @@ frame.text:SetAllPoints(frame)
 frame.text:SetPoint("CENTER", 0, 0)
 frame.text:SetFontObject(GameFontWhite)
 frame:SetScript("OnUpdate", function()
-  this.text:SetText("XP/hr: \nGold/hr: ")
+  this.text:SetText("XP/hour: \nGold: ")
 end)
 
 frame:SetMovable(true)
