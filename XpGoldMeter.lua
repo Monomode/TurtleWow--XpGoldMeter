@@ -1,40 +1,39 @@
 -- XpGoldMeter.lua
 local frame = CreateFrame("Frame", "XpGoldMeterFrame", UIParent)
-frame:SetSize(200, 60)
-frame:SetPoint("CENTER")
-frame:SetMovable(true)
-frame:EnableMouse(true)
-frame:RegisterForDrag("LeftButton")
-frame:SetScript("OnDragStart", frame.StartMoving)
-frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
-frame:SetBackdrop({
-    bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-    edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
-    tile = true, tileSize = 16, edgeSize = 16,
-    insets = { left = 4, right = 4, top = 4, bottom = 4 }
-})
+frame:ClearAllPoints()
+frame:SetWidth(200)
+frame:SetHeight(50)
+frame:SetPoint("CENTER", 0, 0)
 
 -- Font strings
-local xpText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-xpText:SetPoint("TOP", frame, "TOP", 0, -10)
-local goldText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-goldText:SetPoint("BOTTOM", frame, "BOTTOM", 0, 10)
+frame.xpText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+frame.xpText:SetFont(STANDARD_TEXT_FONT, 12, "OUTLINE")
+frame.xpText:SetAllPoints(frame)
+frame.xpText:SetPoint("TOP", frame, "TOP", 0, -5)
+frame.xpText:SetFontObject(GameFontWhite)
+
+frame.goldText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+frame.goldText:SetFont(STANDARD_TEXT_FONT, 12, "OUTLINE")
+frame.goldText:SetAllPoints(frame)
+frame.goldText:SetPoint("BOTTOM", frame, "BOTTOM", 0, 5)
+frame.goldText:SetFontObject(GameFontWhite)
 
 -- Session tracking
 local sessionXP = 0
 local sessionMoney = 0
 local startTime = 0
 
+-- Update function
 local function UpdateDisplay()
     local elapsed = math.max(GetTime() - startTime, 1)
     local xpPerHour = sessionXP / elapsed * 3600
     local moneyPerHour = sessionMoney / elapsed * 3600
 
-    xpText:SetText(string.format("XP/hr: %.0f | Session: %d", xpPerHour, sessionXP))
-    goldText:SetText(string.format("Gold/hr: %.2f | Session: %.2f", moneyPerHour/10000, sessionMoney/10000))
+    frame.xpText:SetText(string.format("XP/hr: %.0f | Session: %d", xpPerHour, sessionXP))
+    frame.goldText:SetText(string.format("Gold/hr: %.2f | Session: %.2f", moneyPerHour/10000, sessionMoney/10000))
 end
 
--- Event handling
+-- Event frame
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:RegisterEvent("PLAYER_XP_UPDATE")
@@ -59,6 +58,22 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         if diff < 0 then diff = 0 end
         sessionMoney = sessionMoney + diff
         UpdateDisplay()
+    end
+end)
+
+-- Movable frame
+frame:SetMovable(true)
+frame:EnableMouse(true)
+frame:SetScript("OnMouseDown", function(self, button)
+    if button == "LeftButton" and IsControlKeyDown() then
+        self:StartMoving()
+    end
+end)
+
+frame:SetScript("OnMouseUp", function(self, button)
+    if button == "LeftButton" then
+        self:StopMovingOrSizing()
+        self:SetUserPlaced(true)
     end
 end)
 
