@@ -1,0 +1,7 @@
+## Interface: 11200
+## Title: XPGoldMeter
+## Notes: Tracks XP/hour and Gold/hour in Turtle WoW (1.12).
+## Author: You
+## Version: 1.0
+
+XPGoldMeter.lua
