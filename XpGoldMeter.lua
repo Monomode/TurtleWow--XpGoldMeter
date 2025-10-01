@@ -10,7 +10,7 @@ frame.text:SetAllPoints(frame)
 frame.text:SetPoint("CENTER", 0, 0)
 frame.text:SetFontObject(GameFontWhite)
 frame:SetScript("OnUpdate", function()
-  this.text:SetText("XpGoldMeter")
+  this.text:SetText("Xp\nGold")
 end)
 
 frame:SetMovable(true)
