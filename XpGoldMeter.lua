@@ -11,6 +11,7 @@ local xpPerHour = (gainedXP / elapsed) * 3600
 
 -- Gold/hr
 local gainedGold = GetMoney() - startGold
+local gold = floor(gainedGold / 10000)
 
 local frame = CreateFrame("Frame", "XpGoldOverlay", UIParent)
 frame:ClearAllPoints()
