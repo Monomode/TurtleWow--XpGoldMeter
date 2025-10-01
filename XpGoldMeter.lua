@@ -1,36 +1,29 @@
 -- XpGoldMeter.lua
 local frame = CreateFrame("Frame", "XpGoldMeterFrame", UIParent)
-frame:SetWidth(200)
-frame:SetHeight(50)
-frame:SetPoint("CENTER", 0, 0)
+frame:SetWidth(180)
+frame:SetHeight(40)
+frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
 
--- Font strings
-frame.xpText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-frame.xpText:SetFont(STANDARD_TEXT_FONT, 12, "OUTLINE")
-frame.xpText:SetAllPoints(frame)
-frame.xpText:SetPoint("TOP", frame, "TOP", 0, -5)
-
-frame.goldText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-frame.goldText:SetFont(STANDARD_TEXT_FONT, 12, "OUTLINE")
-frame.goldText:SetAllPoints(frame)
-frame.goldText:SetPoint("BOTTOM", frame, "BOTTOM", 0, 5)
+-- Text for display
+frame.text = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+frame.text:SetAllPoints(frame)
+frame.text:SetFont(STANDARD_TEXT_FONT, 12, "OUTLINE")
+frame.text:SetJustifyH("CENTER")
 
 -- Session tracking
 local sessionXP = 0
 local sessionMoney = 0
 local startTime = 0
 
--- Update display
+-- Update function
 local function UpdateDisplay()
     local elapsed = math.max(GetTime() - startTime, 1)
     local xpPerHour = sessionXP / elapsed * 3600
-    local moneyPerHour = sessionMoney / elapsed * 3600
-
-    frame.xpText:SetText(string.format("XP/hr: %.0f | Session: %d", xpPerHour, sessionXP))
-    frame.goldText:SetText(string.format("Gold/hr: %.2f | Session: %.2f", moneyPerHour/10000, sessionMoney/10000))
+    local goldPerHour = sessionMoney / elapsed * 3600 / 10000
+    frame.text:SetText(string.format("XP/hr: %.0f  Gold/hr: %.2f", xpPerHour, goldPerHour))
 end
 
--- Event frame
+-- Event handling
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("PLAYER_XP_UPDATE")
@@ -44,34 +37,24 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         print("|cff33ff99XpGoldMeter loaded!|r")
         UpdateDisplay()
     elseif event == "PLAYER_XP_UPDATE" then
-        local newXP = UnitXP("player") or 0
-        local diff = newXP - sessionXP
-        if diff < 0 then diff = 0 end
-        sessionXP = sessionXP + diff
+        sessionXP = UnitXP("player") or sessionXP
         UpdateDisplay()
     elseif event == "PLAYER_MONEY" then
-        local money = GetMoney() or 0
-        local diff = money - sessionMoney
-        if diff < 0 then diff = 0 end
-        sessionMoney = sessionMoney + diff
+        sessionMoney = GetMoney() or sessionMoney
         UpdateDisplay()
     end
 end)
 
--- Movable frame
+-- Movable
 frame:SetMovable(true)
 frame:EnableMouse(true)
-frame:SetScript("OnMouseDown", function(self, button)
-    if button == "LeftButton" and IsControlKeyDown() then
+frame:SetScript("OnMouseDown", function(self)
+    if IsControlKeyDown() then
         self:StartMoving()
     end
 end)
-
-frame:SetScript("OnMouseUp", function(self, button)
-    if button == "LeftButton" then
-        self:StopMovingOrSizing()
-        self:SetUserPlaced(true)
-    end
+frame:SetScript("OnMouseUp", function(self)
+    self:StopMovingOrSizing()
 end)
 
 -- Slash command
