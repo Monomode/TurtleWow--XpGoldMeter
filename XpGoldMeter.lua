@@ -1,6 +1,5 @@
 -- XpGoldMeter.lua
 local frame = CreateFrame("Frame", "XpGoldMeterFrame", UIParent)
-frame:ClearAllPoints()
 frame:SetWidth(200)
 frame:SetHeight(50)
 frame:SetPoint("CENTER", 0, 0)
@@ -10,20 +9,18 @@ frame.xpText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 frame.xpText:SetFont(STANDARD_TEXT_FONT, 12, "OUTLINE")
 frame.xpText:SetAllPoints(frame)
 frame.xpText:SetPoint("TOP", frame, "TOP", 0, -5)
-frame.xpText:SetFontObject(GameFontWhite)
 
 frame.goldText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 frame.goldText:SetFont(STANDARD_TEXT_FONT, 12, "OUTLINE")
 frame.goldText:SetAllPoints(frame)
 frame.goldText:SetPoint("BOTTOM", frame, "BOTTOM", 0, 5)
-frame.goldText:SetFontObject(GameFontWhite)
 
 -- Session tracking
 local sessionXP = 0
 local sessionMoney = 0
 local startTime = 0
 
--- Update function
+-- Update display
 local function UpdateDisplay()
     local elapsed = math.max(GetTime() - startTime, 1)
     local xpPerHour = sessionXP / elapsed * 3600
@@ -35,12 +32,12 @@ end
 
 -- Event frame
 local eventFrame = CreateFrame("Frame")
-eventFrame:RegisterEvent("PLAYER_LOGIN")
+eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("PLAYER_XP_UPDATE")
 eventFrame:RegisterEvent("PLAYER_MONEY")
 
 eventFrame:SetScript("OnEvent", function(self, event, ...)
-    if event == "PLAYER_LOGIN" then
+    if event == "PLAYER_ENTERING_WORLD" then
         sessionXP = UnitXP("player") or 0
         sessionMoney = GetMoney() or 0
         startTime = GetTime()
