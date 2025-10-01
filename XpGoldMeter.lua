@@ -8,9 +8,9 @@ if elapsed <= 0 then elapsed = 1 end
 local gainedXP = UnitXP("player") - startXP
 local xpPerHour = (gainedXP / elapsed) * 3600
 -- Gold/hr
-local gainedGold = (GetMoney() or 0) - startGold
-if gainedGold < 0 then gainedGold = 0 end
-local goldPerHour = (gainedGold / elapsed) * 3600 / 10000 -- copper→gold
+--local gainedGold = (GetMoney() or 0) - startGold
+--if gainedGold < 0 then gainedGold = 0 end
+--local goldPerHour = (gainedGold / elapsed) * 3600 / 10000 -- copper→gold
 
 local frame = CreateFrame("Frame", "XpGoldOverlay", UIParent)
 frame:ClearAllPoints()
