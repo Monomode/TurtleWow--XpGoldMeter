@@ -24,7 +24,7 @@ frame.text:SetAllPoints(frame)
 frame.text:SetPoint("CENTER", 0, 0)
 frame.text:SetFontObject(GameFontWhite)
 frame:SetScript("OnUpdate", function(
-  this.text:SetText("XP/hour: %.0f\nGold: %.2fg", xpPerHour, goldPerHour)
+  this.text:SetText("XP/hour: %.0f\nGold: %.2fg", startXP, startGold)
 end)
 
 frame:SetMovable(true)
