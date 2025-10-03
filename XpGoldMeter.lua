@@ -40,7 +40,7 @@ frame:SetScript("OnUpdate", function()
         goldPerHour = (gainedGold / elapsedTime) * 3600
     end
 
-    this.text:SetText(string.format("XP/hour: %.0f\nGold/hour: %.2f", xpPerHour, goldPerHour))
+    this.text:SetText(string.format("XP/hour: %.0f\nGold/hour: %.4f", xpPerHour, goldPerHour))
 end)
 
 -- Draggable frame
