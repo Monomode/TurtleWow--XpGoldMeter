@@ -14,16 +14,18 @@ frame.text:ClearAllPoints()
 frame.text:SetAllPoints(frame)
 frame.text:SetPoint("CENTER", 0, 0)
 frame.text:SetFontObject(GameFontWhite)
--- Update every frame
 frame:SetScript("OnUpdate", function()
     local elapsedTime = time() - startTime
-    if elapsedTime <= 0 then elapsedTime = 1 end
+    if elapsedTime < 5 then -- wait 5 seconds before showing rates
+        this.text:SetText("Calculating XP/hour...\nCalculating Gold/hour...")
+        return
+    end
 
     -- XP tracking
     local gainedXP   = UnitXP("player") - startXP
     local xpPerHour  = (gainedXP / elapsedTime) * 3600
 
-    -- Gold tracking (copper → gold)
+    -- Gold tracking
     local gainedGold = (GetMoney() - startGold) / 10000
     local goldPerHour = (gainedGold / elapsedTime) * 3600
 
