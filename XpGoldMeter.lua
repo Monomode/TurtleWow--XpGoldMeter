@@ -1,7 +1,11 @@
 -- Session tracking
-local startXP = UnitXP("player")
-local startGold = GetMoney()
+local startXP = 0
+local startGold = 0
 local startTime = time()
+
+--local startXP = UnitXP("player")
+--local startGold = GetMoney()
+--local startTime = time()
 
 local frame = CreateFrame("Frame", "XpGoldOverlay", UIParent)
 frame:ClearAllPoints()
