@@ -6,4 +6,4 @@
 ## DefaultState: enabled
 ## LoadOnDemand: 0
 
-XpGoldMeter.lua
+XpGoldTracker.lua
