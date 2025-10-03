@@ -40,14 +40,15 @@ frame:SetScript("OnUpdate", function()
         goldPerHour = (gainedGold / elapsedTime) * 3600
     end
 
-    this.text:SetText(string.format("XP/hour: %.0f\nGold/hour: %.4f", xpPerHour, goldPerHour))
+    -- Use frame variable instead of 'this'
+    frame.text:SetText(string.format("XP/hour: %.0f\nGold/hour: %.4f", xpPerHour, goldPerHour))
 end)
 
 -- Draggable frame
 frame:SetMovable(true)
 frame:EnableMouse(true)
-frame:SetScript("OnMouseDown", function() this:StartMoving() end)
-frame:SetScript("OnMouseUp", function() this:StopMovingOrSizing(); this:SetUserPlaced(true) end)
+frame:SetScript("OnMouseDown", function() frame:StartMoving() end)
+frame:SetScript("OnMouseUp", function() frame:StopMovingOrSizing(); frame:SetUserPlaced(true) end)
 
 -- Slash command to reset session
 SLASH_XPGOLD1 = "/xpgold"
