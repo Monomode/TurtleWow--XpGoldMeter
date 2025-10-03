@@ -61,6 +61,7 @@ frame:SetScript("OnMouseUp", function() this:StopMovingOrSizing(); this:SetUserP
 -- Slash command to reset session
 SLASH_XPGOLD1 = "/xpgold"
 SlashCmdList["XPGOLD"] = function(msg)
+    msg = msg or ""           -- make sure msg is not nil
     msg = msg:lower()
     if msg == "reset" then
         ResetSession()
