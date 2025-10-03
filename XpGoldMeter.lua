@@ -14,14 +14,20 @@ frame.text:ClearAllPoints()
 frame.text:SetAllPoints(frame)
 frame.text:SetPoint("CENTER", 0, 0)
 frame.text:SetFontObject(GameFontWhite)
+-- Update every frame
 frame:SetScript("OnUpdate", function()
-    local currentXP = UnitXP("player") - startXP
-    local currentGold = (GetMoney() - startGold) / 10000
     local elapsedTime = time() - startTime
     if elapsedTime <= 0 then elapsedTime = 1 end
 
-    local xpPerHour = (currentXP / elapsedTime) * 3600
-    this.text:SetText(string.format("XP/hour: %.0f\nGold: %.2f", xpPerHour, currentGold))
+    -- XP tracking
+    local gainedXP   = UnitXP("player") - startXP
+    local xpPerHour  = (gainedXP / elapsedTime) * 3600
+
+    -- Gold tracking (copper → gold)
+    local gainedGold = (GetMoney() - startGold) / 10000
+    local goldPerHour = (gainedGold / elapsedTime) * 3600
+
+    this.text:SetText(string.format("XP/hour: %.0f\nGold/hour: %.2f", xpPerHour, goldPerHour))
 end)
 
 frame:SetMovable(true)
