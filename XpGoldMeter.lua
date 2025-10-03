@@ -63,19 +63,5 @@ SlashCmdList["XPGOLD"] = function(msg)
     end
 end
 
--- Helper to format seconds as HH:MM:SS
-local function FormatTime(seconds)
-    local h = math.floor(seconds / 3600)
-    local m = math.floor((seconds % 3600) / 60)
-    local s = math.floor(seconds % 60)
-    if h > 0 then
-        return string.format("%dh %02dm %02ds", h, m, s)
-    elseif m > 0 then
-        return string.format("%dm %02ds", m, s)
-    else
-        return string.format("%ds", s)
-    end
-end
-
 -- Confirmation
 DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99XpGoldMeter loaded!|r")
