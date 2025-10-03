@@ -13,8 +13,8 @@ end
 
 -- Create frame
 local frame = CreateFrame("Frame", "XpGoldOverlay", UIParent)
-frame:SetWidth(160)
-frame:SetHeight(40)
+frame:SetWidth(180)
+frame:SetHeight(50)
 frame:SetPoint("CENTER", 0, -205)
 
 -- Font string
@@ -25,23 +25,25 @@ frame.text:SetAllPoints(frame)
 -- Update loop
 frame:SetScript("OnUpdate", function()
     local elapsedTime = time() - startTime
-    if elapsedTime <= 0 then elapsedTime = 1 end
 
     local gainedXP   = UnitXP("player") - startXP
-    local gainedGold = (GetMoney() - startGold) / 10000
+    local gainedGold = (GetMoney() - startGold) / 10000  -- gold in gold units
 
-    -- Start rates at 0 until gains happen
-    local xpPerHour = 0
-    local goldPerHour = 0
-    if gainedXP > 0 then
-        xpPerHour = (gainedXP / elapsedTime) * 3600
-    end
-    if gainedGold > 0 then
-        goldPerHour = (gainedGold / elapsedTime) * 3600
+    -- Show 0 if nothing gained or too early
+    if elapsedTime < 1 or (gainedXP <= 0 and gainedGold <= 0) then
+        frame.text:SetText("XP/hour: 0\nGold/hour: 0\nTotal XP: 0\nTotal Gold: 0")
+        return
     end
 
-    -- Use frame variable instead of 'this'
-    frame.text:SetText(string.format("XP/hour: %.0f\nGold/hour: %.4f", xpPerHour, goldPerHour))
+    -- Calculate rates
+    local xpPerHour   = (gainedXP > 0) and (gainedXP / elapsedTime * 3600) or 0
+    local goldPerHour = (gainedGold > 0) and (gainedGold / elapsedTime * 3600) or 0
+
+    -- Display per-hour rates and total gained
+    frame.text:SetText(string.format(
+        "XP/hour: %.0f\nGold/hour: %.2f\nTotal XP: %d\nTotal Gold: %.2f",
+        xpPerHour, goldPerHour, gainedXP, gainedGold
+    ))
 end)
 
 -- Draggable frame
@@ -53,8 +55,8 @@ frame:SetScript("OnMouseUp", function() frame:StopMovingOrSizing(); frame:SetUse
 -- Slash command to reset session
 SLASH_XPGOLD1 = "/xpgold"
 SlashCmdList["XPGOLD"] = function(msg)
-    msg = msg or ""  -- make sure msg is not nil
-    if msg:lower() == "reset" then
+    msg = msg or ""
+    if string.lower(msg) == "reset" then
         ResetSession()
     else
         DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99XpGoldMeter:|r Use /xpgold reset to reset XP & Gold tracking.")
