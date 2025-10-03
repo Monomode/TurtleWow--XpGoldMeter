@@ -8,7 +8,7 @@ local function ResetSession()
     startXP   = UnitXP("player")
     startGold = GetMoney()
     startTime = time()
-    DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99XpGoldMeter: Session reset!|r")
+    DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99XpGoldTracker: Session reset!|r")
 end
 
 -- Create frame
@@ -41,7 +41,7 @@ frame:SetScript("OnUpdate", function()
 
     -- Display per-hour rates and total gained
     frame.text:SetText(string.format(
-        "XP/hour: %.0f\nGold/hour: %.4f\nTotal XP: %d\nTotal Gold: %.4f",
+        "XP/hour: %.0f\nGold/hour: %.2f\nTotal XP: %d\nTotal Gold: %.2f",
         xpPerHour, goldPerHour, gainedXP, gainedGold
     ))
 end)
