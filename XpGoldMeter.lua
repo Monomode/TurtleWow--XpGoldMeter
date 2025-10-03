@@ -16,7 +16,7 @@ frame.text:SetPoint("CENTER", 0, 0)
 frame.text:SetFontObject(GameFontWhite)
 frame:SetScript("OnUpdate", function()
     local elapsedTime = time() - startTime
-    if elapsedTime < 5 then -- wait 5 seconds before showing rates
+    if elapsedTime < 10 then -- wait 10 seconds before showing rates
         this.text:SetText("Calculating XP/hour...\nCalculating Gold/hour...")
         return
     end
