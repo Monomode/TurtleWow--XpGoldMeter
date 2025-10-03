@@ -41,7 +41,7 @@ frame:SetScript("OnUpdate", function()
 
     -- Display per-hour rates and total gained
     frame.text:SetText(string.format(
-        "XP/hour: %.0f\nGold/hour: %.4f\nTotal XP: %d\nTotal Gold: %.4f\nTime:",
+        "XP/hour: %.0f\nGold/hour: %.4f\nTotal XP: %d\nTotal Gold: %.4f",
         xpPerHour, goldPerHour, gainedXP, gainedGold
     ))
 end)
