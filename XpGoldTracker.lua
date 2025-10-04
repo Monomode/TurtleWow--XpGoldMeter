@@ -42,10 +42,9 @@ frame:SetScript("OnUpdate", function()
 
     -- Time
     local hours   = math.floor(elapsedTime / 3600)
-    local minutes = math.floor((elapsedTime % 3600) / 60)
-    local seconds = math.floor(elapsedTime % 60)
+    local minutes = math.floor(math.fmod(elapsedTime, 3600) / 60)
+    local seconds = math.floor(math.fmod(elapsedTime, 60))
     local timeStr = string.format("%02d:%02d:%02d", hours, minutes, seconds)
-
 
     -- Display per-hour rates and total gained
     frame.text:SetText(string.format(
