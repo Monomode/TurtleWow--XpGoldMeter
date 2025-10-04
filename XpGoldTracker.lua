@@ -25,27 +25,24 @@ frame.text:SetAllPoints(frame)
 
 -- Update loop
 frame:SetScript("OnUpdate", function()
-    local elapsedTime = time() - startTime
-
+    -- Calculate rates
     local gainedXP   = UnitXP("player") - startXP
     local gainedGold = (GetMoney() - startGold) / 10000  -- gold in gold units
-
-    -- Show 0 if nothing gained or too early
-    if elapsedTime < 1 or (gainedXP <= 0 and gainedGold <= 0) then
-        frame.text:SetText("XP/hour: 0\nGold/hour: 0\nTotal XP: 0\nTotal Gold: 0")
-        return
-    end
-
-    -- Calculate rates
     local xpPerHour   = (gainedXP > 0) and (gainedXP / elapsedTime * 3600) or 0
     local goldPerHour = (gainedGold > 0) and (gainedGold / elapsedTime * 3600) or 0
 
     -- Time
+    local elapsedTime = time() - startTime
     local hours   = math.floor(elapsedTime / 3600)
     local minutes = math.floor((elapsedTime - hours * 3600) / 60)
     local seconds = elapsedTime - (hours * 3600) - (minutes * 60)
     local timeString = string.format("%02d:%02d:%02d", hours, minutes, seconds)
-
+        
+    -- Show 0 if nothing gained or too early
+    if elapsedTime < 1 or (gainedXP <= 0 and gainedGold <= 0) then
+        frame.text:SetText("XP/hour: 0\nGold/hour: 0\nTotal XP: 0\nTotal Gold: 0\nTime: %s")
+        return
+    end
 
     -- Display per-hour rates and total gained
     frame.text:SetText(string.format(
