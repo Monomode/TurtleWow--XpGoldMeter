@@ -40,10 +40,12 @@ frame:SetScript("OnUpdate", function()
     local xpPerHour   = (gainedXP > 0) and (gainedXP / elapsedTime * 3600) or 0
     local goldPerHour = (gainedGold > 0) and (gainedGold / elapsedTime * 3600) or 0
 
+    -- Time
     local hours   = math.floor(elapsedTime / 3600)
     local minutes = math.floor((elapsedTime % 3600) / 60)
-    local seconds = elapsedTime % 60
+    local seconds = math.floor(elapsedTime % 60)
     local timeStr = string.format("%02d:%02d:%02d", hours, minutes, seconds)
+
 
     -- Display per-hour rates and total gained
     frame.text:SetText(string.format(
