@@ -1,14 +1,24 @@
 -- Session tracking
 local startXP   = UnitXP("player")
+local lastXP    = startXP
 local startGold = GetMoney()
 local startTime = time()
+local totalGainedXP = 0
+local totalGainedGold = 0
+
+
 
 -- Reset function
 local function ResetSession()
-    startXP    = UnitXP("player")
-    startGold  = GetMoney()
     startLevel = UnitLevel("player")   -- Reset start level as well
+    
+    startXP    = UnitXP("player")
+    lastXP           = startXP
+    startGold  = GetMoney()
     startTime  = time()
+    totalGainedXP    = 0
+    totalGainedGold  = 0
+    
     DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99XpGoldTracker: Session reset!|r")
 end
 
@@ -25,6 +35,24 @@ frame.text:SetAllPoints(frame)
 
 -- Update loop
 frame:SetScript("OnUpdate", function()
+    -- Variables
+    local currentXP = UnitXP("player")
+    local currentGold = GetMoney()
+
+       -- XP tracking logic
+    if currentXP > lastXP then
+        -- Gained XP since last check
+        local delta = currentXP - lastXP
+        totalGainedXP = totalGainedXP + delta
+    elseif currentXP < lastXP then
+        -- XP dropped (e.g. level up): don't subtract, just reset lastXP reference
+        -- This way, we don't count negative XP or reset the total
+        lastXP = currentXP
+    end
+
+        -- Always update lastXP after checking
+    lastXP = currentXP
+
     -- Time
     local elapsedTime = time() - startTime
     -- Calculate rates
