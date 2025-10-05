@@ -1,22 +1,14 @@
--- XP & Gold Tracker (Turtle WoW / Vanilla 1.12 compatible)
--- Tracks XP/hour and Gold/hour
-
 -- Session tracking
 local startXP   = UnitXP("player")
 local startGold = GetMoney()
 local startTime = time()
 
--- Track last XP to detect increases only
-local lastXP        = startXP
-local totalGainedXP = 0
-
 -- Reset function
 local function ResetSession()
-    startXP        = UnitXP("player")
-    startGold      = GetMoney()
-    startTime      = time()
-    lastXP         = startXP
-    totalGainedXP  = 0
+    startXP    = UnitXP("player")
+    startGold  = GetMoney()
+    startLevel = UnitLevel("player")   -- Reset start level as well
+    startTime  = time()
     DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99XpGoldTracker: Session reset!|r")
 end
 
@@ -33,35 +25,29 @@ frame.text:SetAllPoints(frame)
 
 -- Update loop
 frame:SetScript("OnUpdate", function()
-    local currentXP   = UnitXP("player")
-    local currentGold = GetMoney()
+    -- Time
     local elapsedTime = time() - startTime
-    if elapsedTime <= 0 then elapsedTime = 1 end
-
-    -- XP gain logic (ignore negative changes)
-    local diff = currentXP - lastXP
-    if diff > 0 then
-        totalGainedXP = totalGainedXP + diff
-    end
-    lastXP = currentXP
-
-    -- Gold gain (may go up or down — down is fine to track)
-    local gainedGold = (currentGold - startGold) / 10000  -- copper → gold
-
-    -- Rates
-    local xpPerHour   = (totalGainedXP / elapsedTime) * 3600
-    local goldPerHour = (gainedGold / elapsedTime) * 3600
-
-    -- Time format
+    -- Calculate rates
+    local gainedXP   = UnitXP("player") - startXP
+    local gainedGold = (GetMoney() - startGold) / 10000  -- gold in gold units
+    local xpPerHour   = (gainedXP > 0) and (gainedXP / elapsedTime * 3600) or 0
+    local goldPerHour = (gainedGold > 0) and (gainedGold / elapsedTime * 3600) or 0
+    -- Time
     local hours   = math.floor(elapsedTime / 3600)
-    local minutes = math.floor((elapsedTime % 3600) / 60)
-    local seconds = math.floor(elapsedTime % 60)
+    local minutes = math.floor((elapsedTime - hours * 3600) / 60)
+    local seconds = elapsedTime - (hours * 3600) - (minutes * 60)
     local timeString = string.format("%02d:%02d:%02d", hours, minutes, seconds)
+        
+    -- Show 0 if nothing gained or too early
+    if elapsedTime < 1 or (gainedXP <= 0 and gainedGold <= 0) then
+        frame.text:SetText("XP/hour: 0\nGold/hour: 0\nTotal XP: 0\nTotal Gold: 0\nTime: " .. timeString)
+        return
+    end
 
-    -- Display
+    -- Display per-hour rates and total gained
     frame.text:SetText(string.format(
         "XP/hour: %.0f\nGold/hour: %.2f\nTotal XP: %d\nTotal Gold: %.2f\nTime: %s",
-        xpPerHour, goldPerHour, totalGainedXP, gainedGold, timeString
+        xpPerHour, goldPerHour, gainedXP, gainedGold, timeString
     ))
 end)
 
@@ -71,15 +57,16 @@ frame:EnableMouse(true)
 frame:SetScript("OnMouseDown", function() frame:StartMoving() end)
 frame:SetScript("OnMouseUp", function() frame:StopMovingOrSizing(); frame:SetUserPlaced(true) end)
 
--- Slash command
+-- Slash command to reset session
 SLASH_XPGOLD1 = "/xpgold"
 SlashCmdList["XPGOLD"] = function(msg)
-    msg = string.lower(msg or "")
-    if msg == "reset" then
+    msg = msg or ""
+    if string.lower(msg) == "reset" then
         ResetSession()
     else
-        DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99XpGoldTracker:|r Use /xpgold reset to reset the session.")
+        DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99XpGoldMeter:|r Use /xpgold reset to reset XP & Gold tracking.")
     end
 end
 
-DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99XpGoldTracker loaded!|r")
+-- Confirmation
+DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99XpGoldMeter loaded!|r")
