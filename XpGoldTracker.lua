@@ -50,18 +50,17 @@ frame:SetScript("OnUpdate", function()
         lastXP = currentXP
     end
 
-        -- Always update lastXP after checking
+    -- Always update lastXP after checking
     lastXP = currentXP
 
     -- Time
     local elapsedTime = time() - startTime
-    -- Calculate rates
-    local gainedXP   = UnitXP("player") - startXP
-    if gainedXP < 0 then gainedXP = 0 end -- <-- BASIC FIX: never let gainedXP go negative (ignore decreases)
         
+    -- Calculate rates
     local gainedGold = (GetMoney() - startGold) / 10000  -- gold in gold units
-    local xpPerHour   = (gainedXP > 0) and (gainedXP / elapsedTime * 3600) or 0
-    local goldPerHour = (gainedGold > 0) and (gainedGold / elapsedTime * 3600) or 0
+    local xpPerHour   = (totalGainedXP / elapsedTime) * 3600
+    local goldPerHour = (totalGainedGold / elapsedTime) * 3600
+        
     -- Time
     local hours   = math.floor(elapsedTime / 3600)
     local minutes = math.floor((elapsedTime - hours * 3600) / 60)
