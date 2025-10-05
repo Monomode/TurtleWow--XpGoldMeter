@@ -1,5 +1,5 @@
 ## Interface: 11200
-## Title: XP & Gold Meter
+## Title: |cff7fff7f TurtleWOW|r XP & Gold Meter
 ## Notes: Tracks experience, gold per hour, and session time.
 ## Author: Monomoy
 ## Version: 2.0
