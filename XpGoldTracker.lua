@@ -29,6 +29,8 @@ frame:SetScript("OnUpdate", function()
     local elapsedTime = time() - startTime
     -- Calculate rates
     local gainedXP   = UnitXP("player") - startXP
+    if gainedXP < 0 then gainedXP = 0 end -- <-- BASIC FIX: never let gainedXP go negative (ignore decreases)
+        
     local gainedGold = (GetMoney() - startGold) / 10000  -- gold in gold units
     local xpPerHour   = (gainedXP > 0) and (gainedXP / elapsedTime * 3600) or 0
     local goldPerHour = (gainedGold > 0) and (gainedGold / elapsedTime * 3600) or 0
