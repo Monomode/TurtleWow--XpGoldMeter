@@ -1,12 +1,7 @@
 --[[
 Client Compatibility: World of Warcraft 1.12 (Vanilla / Turtle WoW)
 Lua Version: Embedded Lua 5.0.2 (Pre–Lua 5.1)
-This addon is designed for the original World of Warcraft 1.12 client,
-which uses an embedded Lua 5.0.2 interpreter. This differs from modern
-WoW (Burning Crusade and beyond), which use Lua 5.1+.
-
-As such, several modern Lua language features are **not available** or
-behave differently. Any code written for 1.12 must take these into account.
+This addon is designed for the original World of Warcraft 1.12 client.
 ]]
 
 -- Session tracking
@@ -15,7 +10,6 @@ local lastXP    = startXP
 local startGold = GetMoney()
 local startTime = time()
 local totalGainedXP = 0
-local totalGainedGold = 0
 local trackingEnabled = true
 
 -- Ensure the SellValue database is initialized -- Added for loot tracking
@@ -33,7 +27,6 @@ lootFrame:RegisterEvent("CHAT_MSG_LOOT")
 lootFrame:RegisterEvent("CHAT_MSG_COMBAT_SELF_ITEMS")
 lootFrame:RegisterEvent("CHAT_MSG_COMBAT_LOOT")
 
-
 lootFrame:SetScript("OnEvent", function()
     if not trackingEnabled then return end
 
@@ -46,23 +39,19 @@ lootFrame:SetScript("OnEvent", function()
     local msg = arg1
     if not msg then return end
 
-    -- Extract item name and quantity (supports [Item] and stack xN formats)
+    -- Extract item name and quantity (supports [Item] and stack xN formats) -- Updated
     local itemName, quantity = string.match(msg, "You receive loot: %[([^%]]+)%]x(%d+)%." )
     if not itemName then
         itemName = string.match(msg, "You receive loot: %[([^%]]+)%]%." )
         quantity = 1
     end
     quantity = tonumber(quantity) or 1
-
     if not itemName then return end
 
-    -- Convert to SellValues key formats (1.12 DB often uses names, not itemIDs)
     local value = 0
-
     if SellValues and SellValues[itemName] then
         value = SellValues[itemName] * quantity
     else
-        -- Some DBs use lowercase keys or itemID strings
         local itemID = string.match(msg, "item:%d+")
         if itemID and SellValues[itemID] then
             value = SellValues[itemID] * quantity
@@ -72,15 +61,10 @@ lootFrame:SetScript("OnEvent", function()
     if value > 0 then
         totalLootValue = totalLootValue + value
         totalLootedItems = totalLootedItems + quantity
-
-        DEFAULT_CHAT_FRAME:AddMessage(
-            string.format("|cff33ff99LootTracker:|r Added %s (x%d) worth %.2fg",
-                itemName, quantity, value / 10000)
-        )
+        -- Optional debug:
+        -- DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99LootTracker:|r Added " .. itemName .. " (x" .. quantity .. ") worth " .. string.format("%.2fg", value / 10000))
     end
 end)
-
-
 
 -- Reset function
 local function ResetSession()
@@ -89,13 +73,9 @@ local function ResetSession()
     lastXP     = startXP
     startGold  = GetMoney()
     startTime  = time()
-    totalGainedXP    = 0
-    totalGainedGold  = 0
-
-    -- Added for loot tracking
+    totalGainedXP = 0
     totalLootValue = 0
     totalLootedItems = 0
-
     DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99XpGoldTracker: Session reset!|r")
 end
 
@@ -122,7 +102,7 @@ end
 -- Create frame
 local frame = CreateFrame("Frame", "XpGoldOverlay", UIParent)
 frame:SetWidth(180)
-frame:SetHeight(115) -- Slightly taller to fit Profit/hr line -- Added for loot tracking
+frame:SetHeight(100)
 frame:SetPoint("CENTER", 0, -220)
 
 -- Font string
@@ -134,52 +114,44 @@ frame.text:SetAllPoints(frame)
 frame:SetScript("OnUpdate", function()
     if not trackingEnabled then return end
         
-    -- Variables
-    local currentXP = UnitXP("player")
+    local currentXP   = UnitXP("player")
     local currentGold = GetMoney()
         
     -- XP tracking logic
     if currentXP > lastXP then
-        local delta = currentXP - lastXP
-        totalGainedXP = totalGainedXP + delta
+        totalGainedXP = totalGainedXP + (currentXP - lastXP)
     elseif currentXP < lastXP then
         lastXP = currentXP
     end
-
     lastXP = currentXP
 
     -- Time
     local elapsedTime = time() - startTime
     if elapsedTime <= 0 then elapsedTime = 1 end  -- Prevent divide-by-zero
 
-    -- Calculate rates
-    local gainedGold = (currentGold - startGold) / 10000  -- convert copper to gold
-    local xpPerHour   = (totalGainedXP / elapsedTime) * 3600
-    local goldPerHour = (gainedGold / elapsedTime) * 3600
+    -- Gold + Loot combined profit calculations -- Modified
+    local gainedGold = (currentGold - startGold)
+    local totalProfitCopper = gainedGold + totalLootValue
+    local totalProfitGold = totalProfitCopper / 10000
+    local profitPerHour = (totalProfitGold / elapsedTime) * 3600
 
-    -- Added for loot tracking
-    local totalLootGold = totalLootValue / 10000
-    local lootPerHour = (totalLootGold / elapsedTime) * 3600
-
-    -- Added for combined profit/hour
-    local profitPerHour = goldPerHour + lootPerHour
+    local xpPerHour = (totalGainedXP / elapsedTime) * 3600
         
-    -- Time
+    -- Time display
     local hours   = math.floor(elapsedTime / 3600)
     local minutes = math.floor((elapsedTime - hours * 3600) / 60)
     local seconds = elapsedTime - (hours * 3600) - (minutes * 60)
     local timeString = string.format("%02d:%02d:%02d", hours, minutes, seconds)
         
-    -- Show 0 if nothing gained or too early
-    if elapsedTime < 1 or (totalGainedXP <= 0 and gainedGold <= 0 and totalLootGold <= 0) then
-        frame.text:SetText("XP/hour: 0\nGold/hour: 0\nLoot/hr: 0\nProfit/hr: 0\nTotal XP: 0\nTotal Gold: 0\nLoot Value: 0\nTime: " .. timeString)
+    if elapsedTime < 1 or (totalGainedXP <= 0 and totalProfitCopper <= 0) then
+        frame.text:SetText("XP/hour: 0\nProfit/hour: 0\nTotal XP: 0\nTotal Profit: 0\nTime: " .. timeString)
         return
     end
 
-    -- Display per-hour rates and total gained
+    -- Display combined profit stats -- Modified
     frame.text:SetText(string.format(
-        "XP/hour: %.0f\nGold/hour: %.2f\nLoot/hr: %.2f\nProfit/hr: %.2f\nTotal XP: %d\nTotal Gold: %.2f\nLoot Value: %.2f\nTime: %s",
-        xpPerHour, goldPerHour, lootPerHour, profitPerHour, totalGainedXP, gainedGold, totalLootGold, timeString
+        "XP/hour: %.0f\nProfit/hour: %.2f\nTotal XP: %d\nTotal Profit: %.2f\nTime: %s",
+        xpPerHour, profitPerHour, totalGainedXP, totalProfitGold, timeString
     ))
 end)
 
@@ -204,5 +176,4 @@ SlashCmdList["XPGOLD"] = function(msg)
     end
 end
 
--- Confirmation
 DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99XpGoldMeter loaded!|r")
