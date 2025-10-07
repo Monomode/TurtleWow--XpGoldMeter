@@ -56,7 +56,10 @@ frame:SetScript("OnUpdate", function()
     -- Calculate rates
     local gainedGold = (GetMoney() - startGold) / 10000  -- gold units decimal conversion
     local xpPerHour   = (totalGainedXP / elapsedTime) * 3600
-    local goldPerHour = (totalGainedGold / elapsedTime) * 3600
+    local goldPerHour = (gainedGold / elapsedTime) * 3600
+    
+        -- Gold tracking
+    -- local totalGainedGold = (currentGold - startGold) / 10000 -- convert to gold (from copper)
         
     -- Time
     local hours   = math.floor(elapsedTime / 3600)
