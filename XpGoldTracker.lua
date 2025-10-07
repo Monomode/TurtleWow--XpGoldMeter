@@ -18,6 +18,39 @@ local totalGainedXP = 0
 local totalGainedGold = 0
 local trackingEnabled = true
 
+-- Ensure the SellValue database is initialized
+if SellValue_InitializeDB then
+    SellValue_InitializeDB()
+end
+
+local totalLootValue = 0
+local totalLootedItems = 0
+
+local lootFrame = CreateFrame("Frame")
+lootFrame:RegisterEvent("CHAT_MSG_LOOT")
+
+lootFrame:SetScript("OnEvent", function(_, event, msg)
+    if not trackingEnabled or event ~= "CHAT_MSG_LOOT" then return end
+
+    -- Extract item link and quantity
+    local itemLink, quantity = string.match(msg, "You receive loot: (.+)x(%d+)%." )
+    if not itemLink then
+        itemLink = string.match(msg, "You receive loot: (.+)%." )
+        quantity = 1
+    end
+    quantity = tonumber(quantity) or 1
+
+    if itemLink then
+        local itemID = string.match(itemLink, "item:%d+")
+        if itemID and SellValues and SellValues[itemID] then
+            local value = SellValues[itemID] * quantity
+            totalLootValue = totalLootValue + value
+            totalLootedItems = totalLootedItems + quantity
+        end
+    end
+end)
+
+
 -- Reset function
 local function ResetSession()
     startLevel = UnitLevel("player")
@@ -27,6 +60,9 @@ local function ResetSession()
     startTime  = time()
     totalGainedXP    = 0
     totalGainedGold  = 0
+    totalLootValue = 0
+    totalLootedItems = 0
+
     
     DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99XpGoldTracker: Session reset!|r")
 end
@@ -100,14 +136,14 @@ frame:SetScript("OnUpdate", function()
         
     -- Show 0 if nothing gained or too early
     if elapsedTime < 1 or (totalGainedXP  <= 0 and gainedGold <= 0) then
-        frame.text:SetText("XP/hour: 0\nGold/hour: 0\nTotal XP: 0\nTotal Gold: 0\nTime: " .. timeString)
+        frame.text:SetText("XP/hour: 0\nGold/hour: 0\nLoot/hr: %.2f\nTotal XP: 0\nTotal Gold: 0\nTime: " .. timeString)
         return
     end
 
     -- Display per-hour rates and total gained
     frame.text:SetText(string.format(
-        "XP/hour: %.0f\nGold/hour: %.2f\nTotal XP: %d\nTotal Gold: %.2f\nTime: %s",
-        xpPerHour, goldPerHour, totalGainedXP, gainedGold, timeString
+        "XP/hour: %.0f\nGold/hour: %.2f\nLoot/hr: %.2f\nTotal XP: %d\nTotal Gold: %.2f\nTime: %s",
+        xpPerHour, goldPerHour, lootPerHour, totalGainedXP, gainedGold, timeString
     ))
 end)
 
