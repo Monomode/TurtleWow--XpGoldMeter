@@ -140,7 +140,7 @@ frame:SetScript("OnUpdate", function()
         
     -- Show 0 if nothing gained or too early
     if elapsedTime < 1 or (totalGainedXP  <= 0 and gainedGold <= 0) then
-        frame.text:SetText("XP/hour: 0\nGold/hour: 0\nLoot/hr: %.2f\nTotal XP: 0\nTotal Gold: 0\nTime: " .. timeString)
+        frame.text:SetText("XP/hour: 0\nGold/hour: 0\nLoot/hr: 0\nTotal XP: 0\nTotal Gold: 0\nTime: " .. timeString)
         return
     end
 
