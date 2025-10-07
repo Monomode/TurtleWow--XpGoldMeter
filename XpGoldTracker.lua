@@ -62,7 +62,7 @@ lootFrame:SetScript("OnEvent", function()
         totalLootValue = totalLootValue + value
         totalLootedItems = totalLootedItems + quantity
         -- Optional debug:
-        -- DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99LootTracker:|r Added " .. itemName .. " (x" .. quantity .. ") worth " .. string.format("%.2fg", value / 10000))
+        DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99LootTracker:|r Added " .. itemName .. " (x" .. quantity .. ") worth " .. string.format("%.2fg", value / 10000))
     end
 end)
 
