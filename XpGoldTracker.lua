@@ -34,15 +34,24 @@ lootFrame:RegisterEvent("CHAT_MSG_COMBAT_SELF_ITEMS")
 lootFrame:RegisterEvent("CHAT_MSG_COMBAT_LOOT")
 
 
-lootFrame:SetScript("OnEvent", function(_, event, msg)
-    DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99DEBUG:|r Event fired: " .. tostring(event) .. " msg=" .. tostring(msg))
-end)
+lootFrame:SetScript("OnEvent", function()
+    -- Use old-style event globals: event, arg1, arg2, ...
+    if not trackingEnabled then return end
 
+    -- Debug check
+    DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99DEBUG:|r Event fired: " .. tostring(event) .. " msg=" .. tostring(arg1))
 
---[[ lootFrame:SetScript("OnEvent", function(_, event, msg)
-    if not trackingEnabled or event ~= "CHAT_MSG_LOOT" then return end
+    -- Only handle loot events
+    if event ~= "CHAT_MSG_LOOT" 
+       and event ~= "CHAT_MSG_COMBAT_SELF_ITEMS" 
+       and event ~= "CHAT_MSG_COMBAT_LOOT" then
+        return
+    end
 
-    -- Extract item link and quantity -- Updated for plain + linked items
+    local msg = arg1
+    if not msg then return end
+
+    -- Extract item link and quantity (works for both linked and plain text items)
     local itemLink, quantity = string.match(msg, "You receive loot: (.+)x(%d+)%." )
     if not itemLink then
         itemLink = string.match(msg, "You receive loot: (.+)%." )
@@ -52,29 +61,21 @@ end)
 
     if not itemLink then return end
 
-    -- Try to extract itemID if it's a linked item (|Hitem:xxxx|)
     local itemID = string.match(itemLink, "item:%d+")
     local value = 0
 
-    -- Case 1: linked item (has itemID)
     if itemID and SellValues and SellValues[itemID] then
         value = SellValues[itemID] * quantity
-
-    -- Case 2: plain-text item name (no hyperlink)
     elseif SellValues and SellValues[itemLink] then
         value = SellValues[itemLink] * quantity
     end
 
-    -- Add to total if any value found
     if value > 0 then
         totalLootValue = totalLootValue + value
         totalLootedItems = totalLootedItems + quantity
-
-        -- Optional: uncomment for debug
         DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99LootTracker:|r Added " .. itemLink .. " (x" .. quantity .. ") worth " .. string.format("%.2fg", value / 10000))
     end
 end)
-]]
 
 
 -- Reset function
