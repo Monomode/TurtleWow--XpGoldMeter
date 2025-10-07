@@ -34,7 +34,7 @@ lootFrame:RegisterEvent("CHAT_MSG_LOOT")
 lootFrame:SetScript("OnEvent", function(_, event, msg)
     if not trackingEnabled or event ~= "CHAT_MSG_LOOT" then return end
 
-    -- Extract item link and quantity -- Added for loot tracking
+    -- Extract item link and quantity -- Updated for plain + linked items
     local itemLink, quantity = string.match(msg, "You receive loot: (.+)x(%d+)%." )
     if not itemLink then
         itemLink = string.match(msg, "You receive loot: (.+)%." )
@@ -42,15 +42,31 @@ lootFrame:SetScript("OnEvent", function(_, event, msg)
     end
     quantity = tonumber(quantity) or 1
 
-    if itemLink then
-        local itemID = string.match(itemLink, "item:%d+")
-        if itemID and SellValues and SellValues[itemID] then
-            local value = SellValues[itemID] * quantity
-            totalLootValue = totalLootValue + value
-            totalLootedItems = totalLootedItems + quantity
-        end
+    if not itemLink then return end
+
+    -- Try to extract itemID if it's a linked item (|Hitem:xxxx|)
+    local itemID = string.match(itemLink, "item:%d+")
+    local value = 0
+
+    -- Case 1: linked item (has itemID)
+    if itemID and SellValues and SellValues[itemID] then
+        value = SellValues[itemID] * quantity
+
+    -- Case 2: plain-text item name (no hyperlink)
+    elseif SellValues and SellValues[itemLink] then
+        value = SellValues[itemLink] * quantity
+    end
+
+    -- Add to total if any value found
+    if value > 0 then
+        totalLootValue = totalLootValue + value
+        totalLootedItems = totalLootedItems + quantity
+
+        -- Optional: uncomment for debug
+        DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99LootTracker:|r Added " .. itemLink .. " (x" .. quantity .. ") worth " .. string.format("%.2fg", value / 10000))
     end
 end)
+
 
 -- Reset function
 local function ResetSession()
