@@ -6,12 +6,9 @@ local startTime = time()
 local totalGainedXP = 0
 local totalGainedGold = 0
 
-
-
 -- Reset function
 local function ResetSession()
-    startLevel = UnitLevel("player")   -- Reset start level as well
-    
+    startLevel = UnitLevel("player")
     startXP    = UnitXP("player")
     lastXP           = startXP
     startGold  = GetMoney()
@@ -57,7 +54,7 @@ frame:SetScript("OnUpdate", function()
     local elapsedTime = time() - startTime
         
     -- Calculate rates
-    local gainedGold = (GetMoney() - startGold) / 10000  -- gold in gold units
+    local gainedGold = (GetMoney() - startGold) / 10000  -- gold units decimal conversion
     local xpPerHour   = (totalGainedXP / elapsedTime) * 3600
     local goldPerHour = (totalGainedGold / elapsedTime) * 3600
         
