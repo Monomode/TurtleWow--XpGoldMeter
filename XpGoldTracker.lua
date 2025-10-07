@@ -30,8 +30,16 @@ local totalLootedItems = 0
 -- Added for loot tracking
 local lootFrame = CreateFrame("Frame")
 lootFrame:RegisterEvent("CHAT_MSG_LOOT")
+lootFrame:RegisterEvent("CHAT_MSG_COMBAT_SELF_ITEMS")
+lootFrame:RegisterEvent("CHAT_MSG_COMBAT_LOOT")
+
 
 lootFrame:SetScript("OnEvent", function(_, event, msg)
+    DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99DEBUG:|r Event fired: " .. tostring(event) .. " msg=" .. tostring(msg))
+end)
+
+
+--[[ lootFrame:SetScript("OnEvent", function(_, event, msg)
     if not trackingEnabled or event ~= "CHAT_MSG_LOOT" then return end
 
     -- Extract item link and quantity -- Updated for plain + linked items
@@ -66,6 +74,7 @@ lootFrame:SetScript("OnEvent", function(_, event, msg)
         DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99LootTracker:|r Added " .. itemLink .. " (x" .. quantity .. ") worth " .. string.format("%.2fg", value / 10000))
     end
 end)
+]]
 
 
 -- Reset function
