@@ -27,8 +27,10 @@ lootFrame:RegisterEvent("CHAT_MSG_LOOT")
 lootFrame:RegisterEvent("CHAT_MSG_COMBAT_SELF_ITEMS")
 lootFrame:RegisterEvent("CHAT_MSG_COMBAT_LOOT")
 
-lootFrame:SetScript("OnEvent", function()
+lootFrame:SetScript("OnEvent", function(self, event, arg1)
     if not trackingEnabled then return end
+        
+    DEFAULT_CHAT_FRAME:AddMessage("DEBUG: Event fired="..tostring(event).." msg="..tostring(arg1))
 
     if event ~= "CHAT_MSG_LOOT" 
        and event ~= "CHAT_MSG_COMBAT_SELF_ITEMS" 
