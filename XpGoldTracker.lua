@@ -1,3 +1,14 @@
+--[[
+Client Compatibility: World of Warcraft 1.12 (Vanilla / Turtle WoW)
+Lua Version: Embedded Lua 5.0.2 (Pre–Lua 5.1)
+This addon is designed for the original World of Warcraft 1.12 client,
+which uses an embedded Lua 5.0.2 interpreter. This differs from modern
+WoW (Burning Crusade and beyond), which use Lua 5.1+.
+
+As such, several modern Lua language features are **not available** or
+behave differently. Any code written for 1.12 must take these into account.
+]]
+
 -- Session tracking
 local startXP   = UnitXP("player")
 local lastXP    = startXP
@@ -5,6 +16,7 @@ local startGold = GetMoney()
 local startTime = time()
 local totalGainedXP = 0
 local totalGainedGold = 0
+local trackingEnabled = false
 
 -- Reset function
 local function ResetSession()
@@ -17,6 +29,26 @@ local function ResetSession()
     totalGainedGold  = 0
     
     DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99XpGoldTracker: Session reset!|r")
+end
+
+-- Start/stop tracking
+local function StartTracking()
+    if trackingEnabled then
+        DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99XpGoldTracker:|r Already running.")
+        return
+    end
+    trackingEnabled = true
+    if not startXP then ResetSession() end
+    DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99XpGoldTracker:|r Tracking started.")
+end
+
+local function StopTracking()
+    if not trackingEnabled then
+        DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99XpGoldTracker:|r Already stopped.")
+        return
+    end
+    trackingEnabled = false
+    DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99XpGoldTracker:|r Tracking paused.")
 end
 
 -- Create frame
@@ -32,18 +64,20 @@ frame.text:SetAllPoints(frame)
 
 -- Update loop
 frame:SetScript("OnUpdate", function()
+    if not trackingEnabled then return end
+        
     -- Variables
     local currentXP = UnitXP("player")
     local currentGold = GetMoney()
-
-       -- XP tracking logic
+        
+    -- XP tracking logic
     if currentXP > lastXP then
-        -- Gained XP since last check
+    -- Gained XP since last check
         local delta = currentXP - lastXP
         totalGainedXP = totalGainedXP + delta
     elseif currentXP < lastXP then
-        -- XP dropped (e.g. level up): don't subtract, just reset lastXP reference
-        -- This way, we don't count negative XP or reset the total
+    -- XP dropped (e.g. level up): don't subtract, just reset lastXP reference
+    -- This way, we don't count negative XP or reset the total
         lastXP = currentXP
     end
 
@@ -54,12 +88,9 @@ frame:SetScript("OnUpdate", function()
     local elapsedTime = time() - startTime
         
     -- Calculate rates
-    local gainedGold = (GetMoney() - startGold) / 10000  -- gold units decimal conversion
+    local gainedGold = (GetMoney() - startGold) / 10000  -- convert to gold (from copper)
     local xpPerHour   = (totalGainedXP / elapsedTime) * 3600
     local goldPerHour = (gainedGold / elapsedTime) * 3600
-    
-        -- Gold tracking
-    -- local totalGainedGold = (currentGold - startGold) / 10000 -- convert to gold (from copper)
         
     -- Time
     local hours   = math.floor(elapsedTime / 3600)
@@ -86,14 +117,18 @@ frame:EnableMouse(true)
 frame:SetScript("OnMouseDown", function() frame:StartMoving() end)
 frame:SetScript("OnMouseUp", function() frame:StopMovingOrSizing(); frame:SetUserPlaced(true) end)
 
--- Slash command to reset session
+-- Slash command
 SLASH_XPGOLD1 = "/xpgold"
 SlashCmdList["XPGOLD"] = function(msg)
-    msg = msg or ""
-    if string.lower(msg) == "reset" then
+    msg = string.lower(msg or "")
+    if msg == "reset" then
         ResetSession()
+    elseif msg == "start" then
+        StartTracking()
+    elseif msg == "stop" then
+        StopTracking()
     else
-        DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99XpGoldMeter:|r Use /xpgold reset to reset XP & Gold tracking.")
+        DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99XpGoldTracker:|r Use /xpgold start, /xpgold stop, or /xpgold reset.")
     end
 end
 
