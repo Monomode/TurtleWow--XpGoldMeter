@@ -16,7 +16,7 @@ local startGold = GetMoney()
 local startTime = time()
 local totalGainedXP = 0
 local totalGainedGold = 0
-local trackingEnabled = false
+local trackingEnabled = true
 
 -- Reset function
 local function ResetSession()
