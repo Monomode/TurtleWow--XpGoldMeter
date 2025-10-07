@@ -3,6 +3,7 @@
 ## Notes: Tracks experience, gold per hour, and session time.
 ## Author: Monomoy
 ## Version: 2.0
+## SavedVariables: XpGoldTrackerDB
 ## DefaultState: enabled
 ## LoadOnDemand: 0
 
