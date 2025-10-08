@@ -27,46 +27,45 @@ lootFrame:RegisterEvent("CHAT_MSG_LOOT")
 lootFrame:RegisterEvent("CHAT_MSG_COMBAT_SELF_ITEMS")
 lootFrame:RegisterEvent("CHAT_MSG_COMBAT_LOOT")
 
-lootFrame:SetScript("OnEvent", function(self, event, arg1)
-    if not trackingEnabled then return end
-        
-    DEFAULT_CHAT_FRAME:AddMessage("DEBUG: Event fired="..tostring(event).." msg="..tostring(arg1))
+lootFrame:SetScript("OnEvent", function(self, event, msg)
+    if not trackingEnabled or not msg then return end
 
+    -- DEBUG: always show event
+    DEFAULT_CHAT_FRAME:AddMessage("DEBUG: Event fired="..tostring(event).." msg="..tostring(msg))
+
+    -- Only process loot events
     if event ~= "CHAT_MSG_LOOT" 
        and event ~= "CHAT_MSG_COMBAT_SELF_ITEMS" 
        and event ~= "CHAT_MSG_COMBAT_LOOT" then
         return
     end
 
-    local msg = arg1
-    if not msg then return end
-
-    -- Extract item name and quantity (supports [Item] and stack xN formats) -- Updated
-    local itemName, quantity = string.match(msg, "You receive loot: %[([^%]]+)%]x(%d+)%." )
-    if not itemName then
-        itemName = string.match(msg, "You receive loot: %[([^%]]+)%]%." )
-        quantity = 1
+    -- Extract item ID
+    local itemID = string.match(msg, "item:(%d+)")
+    if not itemID then
+        DEFAULT_CHAT_FRAME:AddMessage("|cffff3333LootTracker:|r Could not find item ID in message: " .. msg)
+        return
     end
-    quantity = tonumber(quantity) or 1
-    if not itemName then return end
+    local itemKey = "item:" .. itemID
 
+    -- Extract quantity (default 1)
+    local quantity = tonumber(string.match(msg, "x(%d+)")) or 1
+
+    -- Get value from database
     local value = 0
-    if SellValues and SellValues[itemName] then
-        value = SellValues[itemName] * quantity
-    else
-        local itemID = string.match(msg, "item:%d+")
-        if itemID and SellValues[itemID] then
-            value = SellValues[itemID] * quantity
-        end
+    if SellValues[itemKey] then
+        value = SellValues[itemKey] * quantity
     end
 
     if value > 0 then
         totalLootValue = totalLootValue + value
         totalLootedItems = totalLootedItems + quantity
-        -- Optional debug:
-        DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99LootTracker:|r Added " .. itemName .. " (x" .. quantity .. ") worth " .. string.format("%.2fg", value / 10000))
+        DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99LootTracker:|r Added " .. itemKey .. " (x" .. quantity .. ") worth " .. string.format("%.2fg", value / 10000))
+    else
+        DEFAULT_CHAT_FRAME:AddMessage("|cffff3333LootTracker:|r Item " .. itemKey .. " (x" .. quantity .. ") has no value!")
     end
 end)
+
 
 -- Reset function
 local function ResetSession()
