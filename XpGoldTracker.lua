@@ -31,7 +31,7 @@ lootFrame:SetScript("OnEvent", function(self, event, msg)
     if not trackingEnabled or not msg then return end
 
     -- DEBUG: always show event
-    DEFAULT_CHAT_FRAME:AddMessage("DEBUG: Event fired="..tostring(event).." msg="..tostring(msg))
+    --DEFAULT_CHAT_FRAME:AddMessage("DEBUG: Event fired="..tostring(event).." msg="..tostring(msg))
 
     -- Only process loot events
     if event ~= "CHAT_MSG_LOOT" 
