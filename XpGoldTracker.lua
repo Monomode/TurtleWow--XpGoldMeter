@@ -102,7 +102,7 @@ end
 
 -- Create frame
 local frame = CreateFrame("Frame", "XpGoldOverlay", UIParent)
-frame:SetWidth(240)
+frame:SetWidth(360)
 frame:SetHeight(100)
 frame:SetPoint("CENTER", 0, -220)
 
@@ -145,7 +145,7 @@ frame:SetScript("OnUpdate", function()
     local timeString = string.format("%02d:%02d:%02d", hours, minutes, seconds)
         
     if elapsedTime < 1 or (totalGainedXP <= 0 and totalProfitCopper <= 0) then
-        frame.text:SetText("XP/hour: 0\nGold/hour: 0\nTotal XP: 0\nTotal Gold: 0\nTime: " .. timeString)
+        frame.text:SetText("XP/hour: 0 | Gold/hour: 0\nTotal XP: 0 | Total Gold: 0\nTime: " .. timeString)
         return
     end
 
