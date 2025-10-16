@@ -102,7 +102,7 @@ end
 
 -- Create frame
 local frame = CreateFrame("Frame", "XpGoldOverlay", UIParent)
-frame:SetWidth(180)
+frame:SetWidth(240)
 frame:SetHeight(100)
 frame:SetPoint("CENTER", 0, -220)
 
