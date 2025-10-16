@@ -151,7 +151,7 @@ frame:SetScript("OnUpdate", function()
 
     -- Display combined profit stats -- Modified
     frame.text:SetText(string.format(
-        "XP/hour: %.0f\nGold/hour: %.2f\nTotal XP: %d\nTotal Gold: %.2f\nTime: %s",
+        "XP/hour: %.0f | Gold/hour: %.2f\nTotal XP: %d | Total Gold: %.2f\nTime: %s",
         xpPerHour, profitPerHour, totalGainedXP, totalProfitGold, timeString
     ))
 end)
