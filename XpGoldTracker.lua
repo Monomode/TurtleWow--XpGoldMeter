@@ -145,13 +145,13 @@ frame:SetScript("OnUpdate", function()
     local timeString = string.format("%02d:%02d:%02d", hours, minutes, seconds)
         
     if elapsedTime < 1 or (totalGainedXP <= 0 and totalProfitCopper <= 0) then
-        frame.text:SetText("XP/hour: 0 | Gold/hour: 0\nTotal XP: 0 | Total Gold: 0\nTime: " .. timeString)
+        frame.text:SetText("| XP/hour: 0\| Gold/hour: 0\n| Total XP: 0\n| Total Gold: 0\n| Time: " .. timeString)
         return
     end
 
     -- Display combined profit stats -- Modified
     frame.text:SetText(string.format(
-        "XP/hour: %.0f | Gold/hour: %.2f\nTotal XP: %d | Total Gold: %.2f\nTime: %s",
+        "| XP/hour: %.0f\n| Gold/hour: %.2f\n| Total XP: %d\n| Total Gold: %.2f\n| Time: %s",
         xpPerHour, profitPerHour, totalGainedXP, totalProfitGold, timeString
     ))
 end)
