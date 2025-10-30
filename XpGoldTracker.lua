@@ -5,12 +5,10 @@ This addon is designed for the original World of Warcraft 1.12 client.
 ]]
 
 -- Session tracking
-local startXP   = UnitXP("player")
-local lastXP    = startXP
-local startGold = GetMoney()
-local startTime = time()
+local startXP, lastXP, startGold, startTime = 0, 0, 0, 0
 local totalGainedXP = 0
 local trackingEnabled = true
+local sessionInitialized = false -- Added flag
 
 -- Ensure the SellValue database is initialized -- Added for loot tracking
 if SellValue_InitializeDB then
@@ -114,42 +112,57 @@ frame.text:SetAllPoints(frame)
 -- Update loop
 frame:SetScript("OnUpdate", function()
     if not trackingEnabled then return end
-        
+
+    -- Initialize session once when data is ready
+    if not sessionInitialized and UnitXP("player") and GetMoney() then
+        startXP   = UnitXP("player")
+        lastXP    = startXP
+        startGold = GetMoney()
+        startTime = time()
+        totalGainedXP = 0
+        totalLootValue = 0
+        totalLootedItems = 0
+        sessionInitialized = true
+        DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99XpGoldTracker:|r Session initialized (starting from 0).")
+        return
+    end
+
+    if not sessionInitialized then return end  -- Don't run until initialized
+
     local currentXP   = UnitXP("player")
     local currentGold = GetMoney()
-        
+
     -- XP tracking logic
     if currentXP > lastXP then
         totalGainedXP = totalGainedXP + (currentXP - lastXP)
     elseif currentXP < lastXP then
-        lastXP = currentXP
+        -- Handle level up or reset
+        totalGainedXP = totalGainedXP + currentXP
     end
     lastXP = currentXP
 
     -- Time
     local elapsedTime = time() - startTime
-    if elapsedTime <= 0 then elapsedTime = 1 end  -- Prevent divide-by-zero
+    if elapsedTime <= 0 then elapsedTime = 1 end
 
-    -- Gold + Loot combined profit calculations -- Modified
+    -- Gold + Loot combined profit calculations
     local gainedGold = (currentGold - startGold)
     local totalProfitCopper = gainedGold + totalLootValue
     local totalProfitGold = totalProfitCopper / 10000
     local profitPerHour = (totalProfitGold / elapsedTime) * 3600
-
     local xpPerHour = (totalGainedXP / elapsedTime) * 3600
-        
+
     -- Time display
     local hours   = math.floor(elapsedTime / 3600)
     local minutes = math.floor((elapsedTime - hours * 3600) / 60)
     local seconds = elapsedTime - (hours * 3600) - (minutes * 60)
     local timeString = string.format("%02d:%02d:%02d", hours, minutes, seconds)
-        
+
     if elapsedTime < 1 or (totalGainedXP <= 0 and totalProfitCopper <= 0) then
         frame.text:SetText("XP/hour: 0\nGold/hour: 0\nTotal XP: 0\nTotal Gold: 0\nTime: " .. timeString)
         return
     end
 
-    -- Display combined profit stats -- Modified
     frame.text:SetText(string.format(
         "XP/hour: %.0f\nGold/hour: %.2f\nTotal XP: %d\nTotal Gold: %.2f\nTime: %s",
         xpPerHour, profitPerHour, totalGainedXP, totalProfitGold, timeString
